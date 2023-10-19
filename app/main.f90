@@ -9,6 +9,7 @@ program dragons_den
         character(len=:), allocatable :: radtype
         character(len=:), allocatable :: qmodel
         character(len=:), allocatable :: solvent
+        character(len=:), allocatable :: qc_input
         integer :: charge = 0
         integer :: verbose = 0
     end type TConf
@@ -29,7 +30,7 @@ program dragons_den
     call get_arguments(config, error)
     Call check_terminate(error)
 
-    call dragon%init(config%input, config%charge, config%qmodel, config%radtype, error)
+    call dragon%init(config%input, config%charge, config%qmodel, config%radtype, config%qc_input, error)
     call check_terminate(error)
 
     if (file_exists('.solvscale.param')) then
@@ -45,10 +46,16 @@ program dragons_den
       do i = 1, dragon%mol%nat
          write(*,'(5x,i0,9x,f5.2, 7x, f5.2 )') i, dragon%charges(i), dragon%scaledradii(i)
       enddo
+
+    if (allocated(config%qc_interface)) then
+        call dragon%write(config%qc_interface, error)
+        call check_terminate(error)
+    end if
 contains
 
     subroutine get_arguments(config, error)
         use mctc_env, only: get_argument, fatal_error
+        use iso_fortran_env, only: output_unit
         implicit none
         type(TConf), intent(out) :: config
         type(error_type), allocatable, intent(out) :: error
@@ -77,6 +84,11 @@ contains
                 call get_argument(iarg,arg)
                 if (.not.allocated(config%qc_interface)) then
                     call move_alloc(arg,config%qc_interface)
+                    if (config%qc_interface == 'orca') then
+                        iarg=iarg+1
+                        call get_argument(iarg,arg)
+                        call move_alloc(arg,config%qc_input)
+                    end if
                     cycle
                 end if
                 call fatal_error(error, "Only one program can be specified")
@@ -110,6 +122,9 @@ contains
                     cycle
                 end if
                 call fatal_error(error, "Only one solvent can be specified")
+            case ('--help','-h')
+                call help(output_unit)
+                call exit(0)
             end select
         end do
 
@@ -131,9 +146,6 @@ contains
         implicit none
         type(TConf), intent(inout) :: config
 
-        if (.not.allocated(config%qc_interface)) then
-            config%qc_interface="orca"
-        end if
         if (.not.allocated(config%qmodel)) then
             config%qmodel="ceh"
         end if
@@ -153,6 +165,39 @@ contains
 
     end subroutine check_terminate
 
+subroutine help(unit)
+   integer, intent(in) :: unit
+
+   write(unit,'(a)') ""
+   write(unit, '(2x,a)') &
+      "Usage: draco [options] <inputfile> [options]", &
+      "Calculates dynamically scaled radii based on partial charges of a compound.", &
+      ""
+
+   write(unit, '(2x,a)') &
+      "Supported geometry input formats are:",&
+      "",&
+      "- Xmol/xyz files (xyz, log)",&
+      "- Turbomole's coord, riper's periodic coord (tmol, coord)",&
+      "- DFTB+ genFormat geometry inputs as cluster, supercell or fractional (gen)",&
+      "- VASP's POSCAR/CONTCAR input files (vasp, poscar, contcar)",&
+      "- Protein Database files, only single files (pdb)",&
+      "- Connection table files, molfile (mol) and structure data format (sdf)",&
+      "- Gaussian's external program input (ein)", &
+      ""
+
+   write(unit, '(2x, a, t25, a)') &
+      "Possible options are:", &
+      "", &
+      "--solvent", "Specify the solvent used for solvent properties and parametrization.", &
+      "--prog, --interface", "Specify the QC program for which the input files should be written. (ORCA, TURBOMOLE)", &
+      "", "[HINT] For ORCA, the .inp file needs to be given (e.q. --prog ORCA orca.inp)", &
+      "--charge", "Manually set the charge of the compound.", &
+      "--rad", "Sets the default radii to be scaled. (cpcm, cosmo, smd)", &
+      "--help", "Show this help message."
+   write(unit, '(a)')
+   
+end subroutine help
 
     function file_exists(filename)
         logical :: file_exists

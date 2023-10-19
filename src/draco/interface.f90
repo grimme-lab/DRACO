@@ -2,12 +2,15 @@ module draco_interface
    use mctc_io, only: structure_type, toSymbol => to_symbol
    use mctc_env, only: wp
    implicit none
+   private
 
 
    interface write_radii
       module procedure write_radii_to_control
       module procedure write_radii_to_orca_input
    end interface write_radii
+
+   public :: write_radii
 
 contains
 
@@ -27,15 +30,15 @@ contains
       integer :: i, id, ich, ios
 
       inquire(file='control',exist=ex)
-      !if(.not. ex) then
-      !   call env%warning('There is no control file, nothing will be written')
-      !   return
-      !endif
-      call open_file(id,'control','r')
+     !if(.not. ex) then
+     !    call fatal_error(error,'There is no control file, nothing will be written')
+     !    return
+     ! endif
+      open(newunit=id,file='control',status='old',action='read')
 
       !Scan for $cosmo and copy control
       cosmo=.false.
-      call open_file(ich,'tmp_control','w')
+      open(newunit=ich,file='tmp_control',status='unknown',action='write')
       do
          read(id,'(a)', iostat=ios) line
          if(ios /= 0) exit
@@ -45,7 +48,7 @@ contains
          if(trim(adjustl(line)) == '$cosmo') cosmo = .true.
          write(ich,'(a)') trim(line)
       end do
-      call close_file(id)
+      close(id)
       !if(.not.cosmo) call env%warning('No $cosmo block found in control')
       write(ich,*) ' $cosmo_atoms'
       write(ich,*) ' #radii in Angstrom units'
@@ -56,7 +59,7 @@ contains
       !   end if
       end do
       write(ich,*) '$end'
-      call close_file(ich)
+      close(ich)
       call rename('control','control.original',stat=ios)
       call rename('tmp_control','control',stat=ios)
 
@@ -84,12 +87,12 @@ contains
       !   call env%warning('There is no input file, nothing will be written')
       !   return
       !endif
-      call open_file(id,orca_input,'r')
+      open(newunit=id,file=orca_input,status='old',action='read')
 
       !Scan for $cosmo and copy control
       cpcm=.false.
       cpcm_block=.false.
-      call open_file(ich,'tmp_input','w')
+      open(newunit=ich,file='tmp_input',status='unknown',action='write')
       do
          read(id,'(a)', iostat=ios) line
          if(ios /= 0) exit
@@ -104,7 +107,7 @@ contains
          end if
 !         if(index(line,'cpcm') /= 0) cpcm=.true.
       end do
-      call close_file(id)
+      close(id)
 !      if(.not.cpcm .or. .not. cpcm_block) call env%warning&
 !              &('No cpcm settings found in input')
       if(.not.cpcm_block) then
@@ -117,7 +120,7 @@ contains
          end do
          write(ich,*) 'end'
       end  if
-      call close_file(ich)
+      close(ich)
       call rename(orca_input,trim(orca_input)//'.original',stat=ios)
       call rename('tmp_input',orca_input,stat=ios)
 
