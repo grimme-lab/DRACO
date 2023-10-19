@@ -1,7 +1,7 @@
 module draco_type
     use mctc_io, only: structure_type, get_filetype, read_structure
     use mctc_env, only: wp, error_type, fatal_error
-    use draco_data, only: getVanDerWaalsRadCosmo, getVanDerWaalsRadCPCM
+    use draco_data, only: getVanDerWaalsRadCosmo, getVanDerWaalsRadCPCM, getVanDerWaalsRadSMD
     implicit none
     private
 
@@ -75,6 +75,10 @@ contains
         case('cosmo')
             do i=1,self%mol%nat
                 self%defaultradii(i)=getVanDerWaalsRadCosmo(self%mol%num(self%mol%id(i)))
+            end do
+        case('smd')
+            do i=1,self%mol%nat
+                self%defaultradii(i)=getVanDerWaalsRadSMD(self%mol%num(self%mol%id(i)))
             end do
         case default
             call fatal_error(error,'Unknown radii type: '//trim(radtype))

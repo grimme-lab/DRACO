@@ -21,6 +21,11 @@ module draco_data
         module procedure :: getVanDerWaalsRadCosmoNumber
     end interface getVanDerWaalsRadCosmo
 
+    interface getVanDerWaalsRadSMD
+         module procedure :: getVanDerWaalsRadSMDSymbol
+         module procedure :: getVanDerWaalsRadSMDNumber
+    end interface getVanDerWaalsRadSMD
+
     !public :: getVanDerWaalsRadCosmo, getVanDerWaalsRadCPCM, aatoau, autoaa
 
 !> Default value for unoptimized van-der-Waals radii
@@ -79,6 +84,37 @@ real(wp), parameter :: vanDerWaalsRadCPCM(94) = aatoau * [ &
    & 2.3630_wp, 2.5740_wp, cosmostub, cosmostub, &   ! At-Ra
    & cosmostub, cosmostub, cosmostub, cosmostub, &   ! Ac-U
    & cosmostub, cosmostub]                           ! Np-Pu
+
+!> Default value for missing bondi radii 
+   real(wp), parameter :: smdstub = 2.000_wp
+
+   real(wp), parameter :: vanDerWaalsRadSMD(88) = aatoau * [ &
+       & 1.20_wp, 1.40_wp, 1.81_wp, 1.53_wp, 1.92_wp, 1.85_wp, 1.89_wp, 1.52_wp, &  ! H-O
+       & 1.73_wp, 1.54_wp, 2.27_wp, 1.73_wp, 1.84_wp, 2.47_wp, 2.12_wp, 2.49_wp, &  ! F-S
+       & 2.38_wp, 1.88_wp, 2.75_wp, 2.31_wp, smdstub, smdstub, smdstub, smdstub, &  ! Cl-Cr
+       & smdstub, smdstub, smdstub, smdstub, smdstub, smdstub, 1.87_wp, 2.11_wp, &  ! Mn-Ge
+       & 1.85_wp, 1.90_wp, 3.06_wp, 2.02_wp, 3.03_wp, 2.49_wp, smdstub, smdstub, &  ! As-Zr
+       & smdstub, smdstub, smdstub, smdstub, smdstub, smdstub, smdstub, smdstub, &  ! Nb-Cd
+       & 1.93_wp, 2.17_wp, 2.06_wp, 2.06_wp, 1.98_wp, 2.16_wp, 3.43_wp, 2.68_wp, &  ! I-Ba
+       & smdstub, smdstub, smdstub, smdstub, smdstub, smdstub, smdstub, smdstub, &  ! La-Gd
+       & smdstub, smdstub, smdstub, smdstub, smdstub, smdstub, smdstub, smdstub, &  ! Tb-Hf
+       & smdstub, smdstub, smdstub, smdstub, smdstub, smdstub, smdstub, smdstub, &  ! Ta-Hg
+       & 1.96_wp, 2.02_wp, 2.07_wp, 1.97_wp, 2.02_wp, 2.20_wp, 3.48_wp, 2.83_wp]    ! Tl-Ra
+
+       !> In case no van-der-Waals value is provided
+       real(wp), parameter :: missing = -1.0_wp
+       real(wp), parameter :: vanDerWaalsRadBondi(88) = aatoau * [ &
+       & 1.10_wp, 1.40_wp, 1.81_wp, 1.53_wp, 1.92_wp, 1.70_wp, 1.55_wp, 1.52_wp, &  ! H-O
+       & 1.47_wp, 1.54_wp, 2.27_wp, 1.73_wp, 1.84_wp, 2.10_wp, 1.80_wp, 1.80_wp, &  ! F-S
+       & 1.75_wp, 1.88_wp, 2.75_wp, 2.31_wp, missing, missing, missing, missing, &  ! Cl-Cr
+       & missing, missing, missing, missing, missing, missing, 1.87_wp, 2.11_wp, &  ! Mn-Ge
+       & 1.85_wp, 1.90_wp, 1.83_wp, 2.02_wp, 3.03_wp, 2.49_wp, missing, missing, &  ! As-Zr
+       & missing, missing, missing, missing, missing, missing, missing, missing, &  ! Nb-Cd
+       & 1.93_wp, 2.17_wp, 2.06_wp, 2.06_wp, 1.98_wp, 2.16_wp, 3.43_wp, 2.68_wp, &  ! I-Ba
+       & missing, missing, missing, missing, missing, missing, missing, missing, &  ! La-Gd
+       & missing, missing, missing, missing, missing, missing, missing, missing, &  ! Tb-Hf
+       & missing, missing, missing, missing, missing, missing, missing, missing, &  ! Ta-Hg
+       & 1.96_wp, 2.02_wp, 2.07_wp, 1.97_wp, 2.02_wp, 2.20_wp, 3.48_wp, 2.83_wp]    ! Tl-Ra
 
    !> Prefactor for EEQ to CPCM water
 real(wp), parameter :: eeq_to_radii_prefac_water_cpcm(94) = [ &
@@ -415,6 +451,34 @@ elemental function getVanDerWaalsRadCosmoNumber(number) result(rad)
    end if
 
 end function getVanDerWaalsRadCosmoNumber
+
+elemental function getVanDerWaalsRadSMDSymbol(symbol) result(rad)
+
+   !> Element symbol
+   character(len=*), intent(in) :: symbol
+
+   !> van-der-Waals radius
+   real(wp) :: rad
+
+   rad = getVanDerWaalsRadSMD(toNumber(symbol))
+
+end function getVanDerWaalsRadSMDSymbol
+
+elemental function getVanDerWaalsRadSMDNumber(number) result(rad)
+
+   !> Atomic number
+   integer, intent(in) :: number
+
+   !> van-der-Waals radius
+   real(wp) :: rad
+
+   if (number > 0 .and. number <= size(vanDerWaalsRadSMD, dim=1)) then
+      rad = vanDerWaalsRadSMD(number)
+   else
+      rad = -1.0_wp
+   end if
+
+end function getVanDerWaalsRadSMDNumber
 
 
 !> Get default dielectric constant from Minnesota Solvation Database

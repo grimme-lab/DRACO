@@ -2,6 +2,7 @@ module draco_calc
     use mctc_io, only: structure_type
     use mctc_env, only: wp
     use draco_data, only: get_alpha, get_beta, get_eps, aatoau
+    implicit none
 
 contains
 
@@ -63,7 +64,7 @@ contains
             !write(*,*) '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
             do i=1, mol%nat
             if(any(atoms_to_change_radii == mol%num(mol%id(i)))) then
-                  radii_out(i) = radii_out(i) * (radii_in(in)/aatoau) 
+                  radii_out(i) = radii_out(i) * (radii_in(i)/aatoau) 
             end if
             end do
 
