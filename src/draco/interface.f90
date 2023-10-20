@@ -14,14 +14,15 @@ module draco_interface
 
 contains
 
-   subroutine write_radii_to_control(mol,radii)
+   subroutine write_radii_to_control(mol,radii, atoms_to_change_radii, write_all)
 
       !> Molecular data
       type(structure_type), intent(in) :: mol
       !> Radii to write
       real(wp), intent(in) :: radii(mol%nat)
-
-      
+      integer, dimension(:), intent(in) :: atoms_to_change_radii
+      logical, intent(in) :: write_all
+     
 
       character(len=*), parameter :: source = "write_control"
       character(len=128) :: line
@@ -53,10 +54,13 @@ contains
       write(ich,*) ' $cosmo_atoms'
       write(ich,*) ' #radii in Angstrom units'
       do i=1, mol%nat
-      !   if((atoms_to_change_radii(i) == i)) then !Write only adjusted radii
+         if(write_all == .true.) then !Write all radii
             write(ich,'(2x,a,1x,i0,5x,a)') toSymbol(mol%num(i)), i, '\'
             write(ich,'(3x,a,F16.12)') 'radius=', radii(i)
-      !   end if
+         else if(any(atoms_to_change_radii == mol%num(i))) then
+            write(ich,'(2x,a,1x,i0,5x,a)') toSymbol(mol%num(i)), i, '\'
+            write(ich,'(3x,a,F16.12)') 'radius=', radii(i)
+         end if
       end do
       write(ich,*) '$end'
       close(ich)
@@ -66,7 +70,7 @@ contains
    end subroutine write_radii_to_control
 
 
-   subroutine write_radii_to_orca_input(mol, radii, orca_input)
+   subroutine write_radii_to_orca_input(mol, radii, orca_input, atoms_to_change_radii, write_all)
 
       !> Molecular data
       type(structure_type), intent(in) :: mol
@@ -74,6 +78,8 @@ contains
       real(wp), intent(in) :: radii(mol%nat)
       !> Name of the orca input file
       character(len=*), intent(in) :: orca_input
+      integer, dimension(:), intent(in) :: atoms_to_change_radii
+      logical, intent(in) :: write_all
 
       character(len=*), parameter :: source = "write_input"
       character(len=128) :: line
@@ -100,8 +106,11 @@ contains
          if(trim(adjustl(line)) == '%cpcm') then
             cpcm_block = .true.
             do i=1, mol%nat
-               !if(atoms_to_change_radii(i) == i)& !Write adjusted radii
-               write(ich,'(2x,a,i0,a,F16.12,a)') 'AtomRadii(', i-1,',', radii(i), ')'
+               if(write_all == .true.) then
+                  write(ich,'(2x,a,i0,a,F16.12,a)') 'AtomRadii(', i-1,',', radii(i), ')'
+               else if(any(atoms_to_change_radii == mol%num(i))) then
+                  write(ich,'(2x,a,i0,a,F16.12,a)') 'AtomRadii(', i-1,',', radii(i), ')'
+               end if
                !i-1 because Orca starts to count at 0
             end do
          end if
@@ -114,8 +123,11 @@ contains
          write(ich,*) 
          write(ich,*) '%cpcm'
          do i=1, mol%nat
-            !if(atoms_to_change_radii(i) == i)& !Write adjusted radii
-            write(ich,'(2x,a,i0,a,F16.12,a)') 'AtomRadii(', i-1,',', radii(i), ')'
+            if(write_all == .true.) then !Write all radii
+               write(ich,'(2x,a,i0,a,F16.12,a)') 'AtomRadii(', i-1,',', radii(i), ')'
+            else if(any(atoms_to_change_radii == mol%num(mol%id(i)))) then !Write only adjusted radii
+               write(ich,'(2x,a,i0,a,F16.12,a)') 'AtomRadii(', i-1,',', radii(i), ')'
+            end if
             !i-1 because Orca starts to count at 0
          end do
          write(ich,*) 'end'

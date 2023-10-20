@@ -12,6 +12,7 @@ program dragons_den
         character(len=:), allocatable :: qc_input
         integer :: charge = 0
         integer :: verbose = 0
+        logical :: write_all = .false.
     end type TConf
 
     type(TDraco) :: dragon
@@ -30,7 +31,8 @@ program dragons_den
     call get_arguments(config, error)
     Call check_terminate(error)
 
-    call dragon%init(config%input, config%charge, config%qmodel, config%radtype, config%qc_input, error)
+    call dragon%init(config%input, config%charge, config%qmodel,&
+           & config%radtype, config%qc_input, config%write_all, error)
     call check_terminate(error)
 
     if (file_exists('.solvscale.param')) then
@@ -48,7 +50,7 @@ program dragons_den
       enddo
 
     if (allocated(config%qc_interface)) then
-        call dragon%write(config%qc_interface, error)
+        call dragon%write(config%qc_interface, scalable_atoms, error)
         call check_terminate(error)
     end if
 contains
@@ -122,6 +124,8 @@ contains
                     cycle
                 end if
                 call fatal_error(error, "Only one solvent can be specified")
+            case ('--writeall')
+                config%write_all = .true.
             case ('--help','-h')
                 call help(output_unit)
                 call exit(0)
@@ -194,6 +198,7 @@ subroutine help(unit)
       "", "[HINT] For ORCA, the .inp file needs to be given (e.q. --prog ORCA orca.inp)", &
       "--charge", "Manually set the charge of the compound.", &
       "--rad", "Sets the default radii to be scaled. (cpcm, cosmo, smd)", &
+      "--writeall", "Writes all atomic radii including also not scaled ones.", &
       "--help", "Show this help message."
    write(unit, '(a)')
    

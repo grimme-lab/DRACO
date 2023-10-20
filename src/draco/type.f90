@@ -22,6 +22,9 @@ module draco_type
         !> QC Input
         character(len=:), allocatable :: qc_input
 
+        !> Write all radii?
+        logical :: write_all
+
     contains
         procedure :: init => draco_init
         procedure :: loadParam => draco_load_parameter
@@ -33,7 +36,7 @@ module draco_type
 
 contains
 
-    subroutine draco_init(self, file, charge, qmodel, radtype, qc_input, error)
+    subroutine draco_init(self, file, charge, qmodel, radtype, qc_input, write_all, error)
         use iso_fortran_env, only: output_unit
         class(TDraco), intent(inout) :: self
         character(len=*), intent(in) :: file
@@ -45,6 +48,8 @@ contains
         character(len=*), intent(in) :: radtype
         !> QC Input (only necessary for some programs)
         character(len=*), intent(in), optional :: qc_input
+        !> Write all radii?
+        logical, intent(in) :: write_all
         !> Error handling
         type(error_type), allocatable, intent(inout), optional :: error
         type(error_type), allocatable :: local_error
@@ -91,6 +96,7 @@ contains
         self%scaledradii = 0.0_wp
         self%charges = 0.0_wp
         call self%charge(qmodel, error)
+        if(write_all) self%write_all = .true.
     end subroutine draco_init
 
     subroutine draco_charge(self, model, error)
@@ -180,24 +186,25 @@ contains
 
     end subroutine draco_scale
 
-    subroutine draco_write_qc_input(self, program, error)
+    subroutine draco_write_qc_input(self, program, atoms_to_change_radii, error)
         use draco_interface, only: write_radii
         
         class(TDraco), intent(inout) :: self
         character(len=*), intent(in) :: program
+        integer, dimension(:), intent(in) :: atoms_to_change_radii
 
         type(error_type), allocatable, intent(inout), optional :: error
 
         select case(program)
         case('orca')
             if (allocated(self%qc_input)) then
-                call write_radii(self%mol, self%scaledradii, self%qc_input)
+                call write_radii(self%mol, self%scaledradii, self%qc_input, atoms_to_change_radii, self%write_all)
             else
                 call fatal_error(error,'No QC input file specified for ORCA')
                 return
             end if
         case('turbomole')
-            call write_radii(self%mol,self%scaledradii)
+            call write_radii(self%mol,self%scaledradii, atoms_to_change_radii, self%write_all)
         case default
             if (present(error)) then
                 call fatal_error(error,'Unknown program: '//trim(program))
