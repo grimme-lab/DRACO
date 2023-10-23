@@ -13,6 +13,9 @@ module draco_type
         real(wp), dimension(:), allocatable :: charges
         real(wp), dimension(:), allocatable :: scaledradii
 
+        !> CEH coordination number
+        real(wp), dimension(:), allocatable :: cn
+
         !> Parametrisation
         real(wp), dimension(94) :: prefac, expo, o_shift
 
@@ -116,7 +119,7 @@ contains
 
         select case(model)
         case('ceh')
-            call ceh(self%mol,self%charges, error)
+            call ceh(self%mol,self%charges,self%cn, error)
         case ('eeq')
             call eeq(self%mol,self%charges)
         case default
@@ -191,7 +194,7 @@ contains
         integer, dimension(:), intent(in) :: atoms_to_change_radii
 
         call calc_radii(self%mol, self%charges, self%radtype, solvent, self%prefac, self%expo, self%o_shift,&
-        & self%defaultradii, self%scaledradii, atoms_to_change_radii)
+        & self%defaultradii, self%cn, self%scaledradii, atoms_to_change_radii)
 
     end subroutine draco_scale
 

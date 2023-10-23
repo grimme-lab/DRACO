@@ -7,7 +7,7 @@ module draco_calc
 contains
 
    subroutine calc_radii(mol, q, radtype, solvent, prefac, expo, o_shift, &
-                  & radii_in,radii_out,atoms_to_change_radii)
+                  & radii_in,cn,radii_out,atoms_to_change_radii)
     use iso_fortran_env, only: output_unit
       !> Molecular structure data
       type(structure_type), intent(inout) :: mol
@@ -16,6 +16,9 @@ contains
 
       !> Parameter
       real(wp), intent(in) :: prefac(:), expo(:), o_shift(:)
+
+      !> Coordination number
+      real(wp), intent(in) :: cn(:)
 
       !> Solvent
       character(len=*), intent(in) :: solvent
