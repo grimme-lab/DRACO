@@ -38,6 +38,7 @@ contains
 
     subroutine draco_init(self, file, charge, qmodel, radtype, qc_input, write_all, error)
         use iso_fortran_env, only: output_unit
+        use draco_read, only: read_charges
         class(TDraco), intent(inout) :: self
         character(len=*), intent(in) :: file
         !> Charge of the molecule
@@ -95,7 +96,15 @@ contains
         self%radtype = radtype
         self%scaledradii = 0.0_wp
         self%charges = 0.0_wp
-        call self%charge(qmodel, error)
+        if (qmodel == "custom") then
+            call read_charges('draco_charges',self%charges, error)
+            if (abs(sum(self%charges)-self%mol%charge) > 0.1_wp) then ! High tolerance to allow deviation for printouts
+                call fatal_error(error,'The sum of the custom charges is not equal to the total charge of the molecule')
+                return
+            end if
+        else
+            call self%charge(qmodel, error)
+        end if
         if(write_all) self%write_all = .true.
     end subroutine draco_init
 

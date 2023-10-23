@@ -9,7 +9,12 @@ module draco_read
        module procedure rdparam_solvscale_id
     end interface rdparam_solvscale
 
-    public :: rdparam_solvscale
+    interface read_charges
+       module procedure readcharges_file
+       module procedure readcharges_id
+    end interface read_charges
+
+    public :: rdparam_solvscale, read_charges
 
 contains
 
@@ -75,5 +80,76 @@ contains
       enddo
 
    end subroutine rdparam_solvscale_id
+   
+   subroutine readcharges_file(file, charges, error)
+
+      character(len=*), intent(in) :: file
+      real(wp), intent(inout) :: charges(:)
+
+      type(error_type), allocatable, intent(out) :: error
+
+      integer :: id, err
+
+      logical :: ex
+
+      inquire(file=file,exist=ex)
+      if (.not. ex) then
+         call fatal_error(error, "File " // trim(file) // " for custom charges reading does not exist")
+         return
+      end if
+      open(newunit=id,file=file,iostat=err)
+      if (err.ne.0) then
+         call fatal_error(error, "Error while opening file " // trim(file) // " for custom charges reading")
+         return
+      end if
+
+      call readcharges_id(id, charges,error)
+
+      close(id)
+
+   end subroutine readcharges_file
+
+   subroutine readcharges_id(id, charges, error)
+         
+         integer, intent(in) :: id
+         real(wp), intent(inout) :: charges(:)
+   
+         !> Error handling
+         type(error_type), allocatable, intent(out) :: error
+   
+         character(len=10) :: line
+         integer :: ie, at, err
+         real(wp) :: ddum
+   
+         at = 0
+         do
+            read(id,*,iostat=err) line
+            if (err<0) exit
+            if (err>0) then
+               call fatal_error(error, "Error while reading custom charges from file")
+               return
+            end if
+            if (line == '') exit
+            read(line,*) ddum
+            
+            if (at > size(charges)) then
+               call fatal_error(error, "Too many custom charges in file")
+               return
+            end if
+            at=at+1
+            charges(at) = ddum
+            if (err.ne.0) then
+               write(at,*) line
+               call fatal_error(error, "Error while reading custom charge for atom " // line // " from file")
+               return
+            end if
+         end do
+
+         if (at < size(charges)) then
+            call fatal_error(error, "Too few custom charges in file")
+            return
+         end if
+
+   end subroutine readcharges_id
 
 end module draco_read

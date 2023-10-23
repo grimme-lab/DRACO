@@ -59,7 +59,7 @@ contains
         use mctc_env, only: get_argument, fatal_error
         use iso_fortran_env, only: output_unit
         implicit none
-        type(TConf), intent(out) :: config
+        type(TConf), intent(inout) :: config
         type(error_type), allocatable, intent(out) :: error
 
         character(len=:), allocatable :: arg
