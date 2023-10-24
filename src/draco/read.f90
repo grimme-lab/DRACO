@@ -18,10 +18,10 @@ module draco_read
 
 contains
 
-   subroutine rdparam_solvscale_file(file, prefac, expo, o_shift, error)
+   subroutine rdparam_solvscale_file(file, prefac, expo, o_shift, k1, error)
 
       character(len=*), intent(in) :: file
-      real(wp), intent(inout) :: prefac(:), expo(:), o_shift(:)
+      real(wp), intent(inout) :: prefac(:), expo(:), o_shift(:), k1(:)
 
       type(error_type), allocatable, intent(out) :: error
 
@@ -33,16 +33,16 @@ contains
          return
       end if
 
-      call rdparam_solvscale_id(id, prefac, expo, o_shift,error)
+      call rdparam_solvscale_id(id, prefac, expo, o_shift,k1,error)
 
       close(id)
 
    end subroutine rdparam_solvscale_file
 
-   subroutine rdparam_solvscale_id(id, prefac, expo, o_shift,error)
+   subroutine rdparam_solvscale_id(id, prefac, expo, o_shift, k1, error)
 
       integer, intent(in) :: id
-      real(wp), intent(inout) :: prefac(:), expo(:), o_shift(:)
+      real(wp), intent(inout) :: prefac(:), expo(:), o_shift(:), k1 (:)
 
       !> Error handling
         type(error_type), allocatable, intent(out) :: error
@@ -66,7 +66,7 @@ contains
          read(id,*,iostat=err) o_shift(at)
          read(id,*,iostat=err) prefac(at)
          read(id,*,iostat=err) expo(at)
-         read(id,*,iostat=err)
+         read(id,*,iostat=err) k1(at)
          if (err.ne.0) then
             call fatal_error(error, "Error while reading parameter for atom " // trim(line) // " from file")
             return

@@ -17,7 +17,7 @@ module draco_type
         real(wp), dimension(:), allocatable :: cn
 
         !> Parametrisation
-        real(wp), dimension(94) :: prefac, expo, o_shift
+        real(wp), dimension(94) :: prefac, expo, o_shift, k1
 
         !> Radtype
         character(len=:), allocatable :: radtype
@@ -183,7 +183,7 @@ contains
         character(len=*), intent(in) :: file
         type(error_type), allocatable :: error
 
-        call rdparam_solvscale(file, self%prefac, self%expo, self%o_shift, error)
+        call rdparam_solvscale(file, self%prefac, self%expo, self%o_shift, self%k1, error)
     
     end subroutine draco_read_param
 
@@ -194,7 +194,7 @@ contains
         integer, dimension(:), intent(in) :: atoms_to_change_radii
 
         call calc_radii(self%mol, self%charges, self%radtype, solvent, self%prefac, self%expo, self%o_shift,&
-        & self%defaultradii, self%cn, self%scaledradii, atoms_to_change_radii)
+        & self%defaultradii, self%cn, self%k1, self%scaledradii, atoms_to_change_radii)
 
     end subroutine draco_scale
 

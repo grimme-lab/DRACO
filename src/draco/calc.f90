@@ -7,7 +7,7 @@ module draco_calc
 contains
 
    subroutine calc_radii(mol, q, radtype, solvent, prefac, expo, o_shift, &
-                  & radii_in,cn,radii_out,atoms_to_change_radii)
+                  & radii_in,cn,k1,radii_out,atoms_to_change_radii)
     use iso_fortran_env, only: output_unit
       !> Molecular structure data
       type(structure_type), intent(inout) :: mol
@@ -15,7 +15,7 @@ contains
       real(wp),intent(in) :: q(mol%nat)
 
       !> Parameter
-      real(wp), intent(in) :: prefac(:), expo(:), o_shift(:)
+      real(wp), intent(in) :: prefac(:), expo(:), o_shift(:), k1(:)
 
       !> Coordination number
       real(wp), intent(in) :: cn(:)
@@ -28,7 +28,7 @@ contains
       integer, intent(in) :: atoms_to_change_radii(:)
       real(wp), intent(in) :: radii_in(mol%nat)
       real(wp), intent(out) :: radii_out(mol%nat)
-      real(wp) :: asym, damping, x3, x2, x1, a, b, c, d
+      real(wp) :: asym, damping, x3, x2, x1, a, b, c, d, k
       real(wp) :: eps, alpha_beta_scaling_h, alpha_beta_scaling_o
       real(wp) :: alpha, beta
 
@@ -50,7 +50,8 @@ contains
          if(any(atoms_to_change_radii == mol%num(mol%id(i)))) then
             a = prefac(mol%num(mol%id(i)))
             b = expo(mol%num(mol%id(i)))
-            radii_out(i) = erf(a*(q(i)-b)) + 1
+            k = k1(mol%num(mol%id(i)))
+            radii_out(i) = erf(a*((q(i)+k*q(i)*cn(i))-b)) + 1
          else
             radii_out(i) = radii_in(i)
          end if
