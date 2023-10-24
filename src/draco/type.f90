@@ -119,6 +119,7 @@ contains
 
         select case(model)
         case('ceh')
+            allocate(self%cn(self%mol%nat))
             call ceh(self%mol,self%charges,self%cn, error)
         case ('eeq')
             call eeq(self%mol,self%charges)

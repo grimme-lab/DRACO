@@ -1,5 +1,5 @@
 program dragons_den
-    use draco, only: TDraco
+    use draco, only: TDraco, header
     use iso_fortran_env, only: output_unit, input_unit
     use mctc_env, only: wp, error_type
     implicit none
@@ -29,6 +29,7 @@ program dragons_den
     end if
 
     call get_arguments(config, error)
+    call header(output_unit,config%verbose)
     Call check_terminate(error)
 
     call dragon%init(config%input, config%charge, config%qmodel,&
