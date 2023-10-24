@@ -11,16 +11,15 @@ module draco_charges
     real(wp), parameter :: kt= 3.166808578e-6_wp
     private
 
-    public :: ceh, eeq
+    public :: ceh, eeq, get_cn
 
 
 contains
 
 
-    subroutine ceh(mol,charges,cn,error)
+    subroutine ceh(mol,charges,error)
         type(structure_type), intent(in) :: mol
         real(wp), dimension(:), intent(out) :: charges
-        real(wp), allocatable, intent(inout) :: cn(:)
         type(error_type), intent(out), allocatable, optional :: error
 
         type(wavefunction_type) :: wfn
@@ -31,7 +30,6 @@ contains
         call new_ceh_calculator(calc, mol)
         call new_wavefunction(wfn,mol%nat,calc%bas%nsh,calc%bas%nao,1,298.15_wp*kt)
         call ceh_guess(ctx,calc,mol,error,wfn,0)
-        call calc%ncoordstd%get_cn(mol, cn)
         charges(:)=wfn%qat(:,1)
 
     end subroutine ceh
@@ -50,5 +48,20 @@ contains
 
     end subroutine eeq
 
+    subroutine get_cn(mol,cn, error)
+        use tblite_ncoord, only: new_ncoord
+        type(structure_type), intent(in) :: mol
+        real(wp), dimension(:), intent(inout) :: cn
+        type(error_type), intent(out), allocatable, optional :: error
+
+        type(xtb_calculator) :: calc
+        type(wavefunction_type) :: wfn
+
+        call new_gfn2_calculator(calc, mol)
+        call new_wavefunction(wfn,mol%nat,calc%bas%nsh,calc%bas%nao,1,298.15_wp*kt)
+        call new_ncoord(calc%ncoord,mol,"gfn")
+        call calc%ncoord%get_cn(mol, cn)
+
+    end subroutine get_cn
 
 end module draco_charges

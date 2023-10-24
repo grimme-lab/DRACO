@@ -42,6 +42,7 @@ contains
     subroutine draco_init(self, file, charge, qmodel, radtype, qc_input, write_all, error)
         use iso_fortran_env, only: output_unit
         use draco_read, only: read_charges
+        use draco_charges, only: get_cn
         class(TDraco), intent(inout) :: self
         character(len=*), intent(in) :: file
         !> Charge of the molecule
@@ -99,6 +100,8 @@ contains
         self%radtype = radtype
         self%scaledradii = 0.0_wp
         self%charges = 0.0_wp
+        allocate(self%cn(self%mol%nat))
+        call get_cn(self%mol, self%cn)
         if (qmodel == "custom") then
             call read_charges('draco_charges',self%charges, error)
             if (abs(sum(self%charges)-self%mol%charge) > 0.1_wp) then ! High tolerance to allow deviation for printouts
@@ -119,8 +122,7 @@ contains
 
         select case(model)
         case('ceh')
-            allocate(self%cn(self%mol%nat))
-            call ceh(self%mol,self%charges,self%cn, error)
+            call ceh(self%mol,self%charges, error)
         case ('eeq')
             call eeq(self%mol,self%charges)
         case default
