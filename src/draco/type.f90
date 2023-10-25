@@ -146,34 +146,34 @@ contains
             !call env%error('COSMO is not implemeneted yet')
 
          case('cpcm')
-            self%o_shift = eeq_to_radii_scaling_alpha_cpcm
+!            self%o_shift = eeq_to_radii_scaling_alpha_cpcm
             select case (solvent)
                case default
-                  self%prefac = eeq_to_radii_prefac_other_cpcm
-                  self%expo = eeq_to_radii_expo_other_cpcm
+!                  self%prefac = eeq_to_radii_prefac_other_cpcm
+!                  self%expo = eeq_to_radii_expo_other_cpcm
                   !if (get_eps(trim(solvent)) < 5.0_wp) then
                   !   call env%warning &
                   !   & ("The current parameterization is only tested for polar solvents.")
                   !end if
                case('water')
-                  self%prefac = eeq_to_radii_prefac_water_cpcm
-                  self%expo = eeq_to_radii_expo_water_cpcm
+!                  self%prefac = eeq_to_radii_prefac_water_cpcm
+!                  self%expo = eeq_to_radii_expo_water_cpcm
             end select
 
          case('smd')
             !Use the scaling on SMD radii
-            self%o_shift = eeq_to_radii_scaling_alpha_smd
+!            self%o_shift = eeq_to_radii_scaling_alpha_smd
             select case (solvent)
                case default
-                  self%prefac = eeq_to_radii_prefac_other_smd
-                  self%expo = eeq_to_radii_expo_other_smd
+!                  self%prefac = eeq_to_radii_prefac_other_smd
+!                  self%expo = eeq_to_radii_expo_other_smd
                   !if (get_eps(trim(solvent)) < 5.0_wp) then
                   !   call env%warning &
                   !   & ("The current parameterization is only tested for polar solvents.")
                   !end if
                case('water')
-                  self%prefac = eeq_to_radii_prefac_water_smd
-                  self%expo = eeq_to_radii_expo_water_smd
+!                  self%prefac = eeq_to_radii_prefac_water_smd
+!                  self%expo = eeq_to_radii_expo_water_smd
             end select
         end select
 
