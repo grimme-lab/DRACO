@@ -77,6 +77,7 @@ contains
         allocate(self%defaultradii(self%mol%nat))
         allocate(self%charges(self%mol%nat))
         allocate(self%scaledradii(self%mol%nat))
+        allocate(self%cn(self%mol%nat))
         select case(radtype)
         case('cpcm')
             do i=1,self%mol%nat
@@ -100,7 +101,6 @@ contains
         self%radtype = radtype
         self%scaledradii = 0.0_wp
         self%charges = 0.0_wp
-        allocate(self%cn(self%mol%nat))
         call get_cn(self%mol, self%cn)
         if (qmodel == "custom") then
             call read_charges('draco_charges',self%charges, error)

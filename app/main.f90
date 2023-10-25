@@ -1,5 +1,5 @@
 program dragons_den
-    use draco, only: TDraco, header
+    use draco, only: TDraco, header, write_charges
     use iso_fortran_env, only: output_unit, input_unit
     use mctc_env, only: wp, error_type
     implicit none
@@ -13,6 +13,7 @@ program dragons_den
         integer :: charge = 0
         integer :: verbose = 0
         logical :: write_all = .false.
+        logical :: wrcharges = .false.
     end type TConf
 
     type(TDraco) :: dragon
@@ -53,6 +54,10 @@ program dragons_den
     if (allocated(config%qc_interface)) then
         call dragon%write(config%qc_interface, scalable_atoms, error)
         call check_terminate(error)
+    end if
+
+    if (config%wrcharges) then
+        call write_charges(dragon%charges)
     end if
 contains
 
@@ -127,6 +132,11 @@ contains
                 call fatal_error(error, "Only one solvent can be specified")
             case ('--writeall')
                 config%write_all = .true.
+            case ('--writecharges', '--wrcharges')
+                config%wrcharges = .true.
+            case ('--version','-V')
+                call header(output_unit,1)
+                call exit(0)
             case ('--help','-h')
                 call help(output_unit)
                 call exit(0)

@@ -22,3 +22,9 @@ option(
   yield: true,
   description: 'use tblite library as backend for xTB',
 )
+option(
+  'build_name',
+  type: 'string',
+  value: 'unknown',
+  description: 'Name of the build, will be overwritten automatically by git',
+)
