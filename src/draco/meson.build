@@ -5,5 +5,6 @@ srcs += files(
     'data.f90',
     'calc.f90',
     'read.f90',
-    'fancy.f90'
+    'fancy.f90',
+    'write.f90'
 )

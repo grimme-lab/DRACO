@@ -59,4 +59,35 @@ pkg.generate(
   subdirs: ['', module_id],
 )
 
+commit = get_option('build_name')                                                                                                                                                              
+git = find_program('git', required: false)                                                                                                                                                     
+if git.found()                                                                                                                                                                                 
+  git_commit = run_command(git, 'show', '-s', '--format=%h')                                                                                                                                   
+  if git_commit.returncode() == 0                                                                                                                                                              
+    commit = git_commit.stdout().strip()                                                                                                                                                       
+  endif                                                                                                                                                                                        
+endif  
+
+pymod = import('python')                                                                                                                                                                       
+python = pymod.find_installation('python3', required: false)                                                                                                                                   
+if not python.found()                                                                                                                                                                          
+  python = find_program('python3', 'python')                                                                                                                                                   
+endif 
+
+config = configuration_data({                                                                                                                                                                  
+  'name': meson.project_name(),                                                                                                                                                                
+  'description': 'Dynamic Radii Adjustment for Continuum Solvation',                                                                                                                       
+  'version': meson.project_version(),                                                                                                                                                          
+  'commit': commit,                                                                                                                                                                            
+  'date': run_command(python, '-c', 'import datetime; print(datetime.date.today().strftime("%Y-%m-%d"))').stdout().strip(),                                                                    
+  'author': run_command(python, '-c', 'import getpass; print(getpass.getuser())').stdout().strip(),                                                                                            
+  'origin': run_command(python, '-c', 'import socket; print(socket.gethostname())').stdout().strip(),                                                                                          
+})                                                                                                                                                                                             
+                                                                                                                                                                                               
+configure_file(                                                                                                                                                                                
+  input: files('config/version.f90'),                                                                                                                                                
+  output: 'draco_version.fh',                                                                                                                                                                    
+  configuration : config,                                                                                                                                                                      
+)  
+
 #subdir('test')
