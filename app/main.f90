@@ -1,5 +1,6 @@
 program dragons_den
-    use draco, only: TDraco, header, write_charges, write_cn
+    use draco, only: TDraco, write_charges, write_cn
+    use fancy, only: header, generic_header
     use iso_fortran_env, only: output_unit, input_unit
     use mctc_env, only: wp, error_type
     use mctc_io, only: to_symbol
@@ -36,7 +37,9 @@ program dragons_den
     call get_arguments(config, error)
     call header(output_unit,config%verbose)
     Call check_terminate(error)
-
+    if (config%verbose.ge.0) then
+        call print_config(config)
+    end if
     call dragon%init(config%input, config%charge, config%qmodel,&
            & config%radtype, config%qc_input, config%write_all, error)
     call check_terminate(error)
@@ -51,10 +54,12 @@ program dragons_den
     call dragon%calc(config%solvent,scalable_atoms)
     ! Print radii
     if (config%verbose .ge. 0) then
+        call generic_header(output_unit, "Structure Information",49,10)
         write(output_unit,'(a)')
-        write(output_unit,'(3x,a,t16,a,t33,a)') 'Identifier', 'Partial Charge',  'Radii (unscaled)'
+        write(output_unit,'(13x,a,t26,a,t43,a)') 'Identifier', 'Partial Charge',  'Radii (unscaled)'
+        write(output_unit,'(a)')
         do i = 1, dragon%mol%nat
-           write(output_unit,'(7x,a,i0, t20, f5.2,t33,f5.2,3x,a,g0.3,a )') &
+           write(output_unit,'(17x,a,i0, t30, f5.2,t43,f5.2,3x,a,g0.3,a )') &
            & trim(dragon%element(i)),i, dragon%charges(i), dragon%scaledradii(i), '('&
            & , dragon%defaultradii(i)/aatoau,')'
         enddo
@@ -68,7 +73,7 @@ program dragons_den
 
     if (config%wrcharges) then
         if (config%verbose .ge. 0) then
-            write(output_unit,'(3x,a)') 'Writing charges to "draco_charges" &
+            write(output_unit,'(3x,a)') '[INFO] Writing charges to "draco_charges" &
             & and coordination numbers to "draco_cn"', &
             ''
         end if
@@ -136,6 +141,8 @@ contains
                 call fatal_error(error, "Only one default radii set can be specified")
             case ('--verbose','-v')
                 config%verbose = 1
+            case ('--veryverbose','-vv')
+                config%verbose = 2
             case ('--charge','-c')
                 iarg=iarg+1
                 call get_argument(iarg,arg)
@@ -241,6 +248,11 @@ subroutine help(unit)
       "--charge", "Manually set the charge of the compound.", &
       "--rad", "Sets the default radii to be scaled. (cpcm, cosmo, smd)", &
       "--writeall", "Writes all atomic radii including also not scaled ones.", &
+      "--writecharges", "Writes the partial charges to a file called 'draco_charges'.", &
+      "", "Also writes the coordination numbers to a file called 'draco_cn'.", &
+      "--version", "Show version information.", &
+      "--verbose", "Show more information.", &
+      "--silent", "Supress the printout.", &
       "--help", "Show this help message."
    write(unit, '(a)')
    
@@ -262,5 +274,36 @@ end subroutine help
         end if
         call exit(stat)
     end subroutine terminate 
+
+    subroutine print_config(conf)
+        type(TConf), intent(in) :: conf
+
+        integer :: l
+        character(len=:), allocatable :: cmd
+
+        call generic_header(output_unit, "Configuration",49,10)
+        call get_command(length=l)
+        allocate(character(l) :: cmd)
+        call get_command(cmd)
+
+        write(output_unit,'(23x,a,t43,a)') "","", &
+        "program call: ", trim(cmd), &
+        "Input file: ", trim(conf%input), &
+        "Solvent: ", trim(conf%solvent), &
+        "Charge model: ", trim(conf%qmodel), &
+        "Radii: ", trim(conf%radtype)
+        if (allocated(conf%qc_interface)) then
+            write(output_unit,'(23x,a,t43,a)') "QC interface: ",trim(conf%qc_interface)
+            if (allocated(conf%qc_input)) then
+                write(output_unit,'(23x,a,t43,a)') "QC input file: ",trim(conf%qc_input)
+            end if
+        end if
+        write(output_unit,'(23x,a,t43,i0)') "Charge: ",conf%charge
+        write(output_unit,'(a)')
+
+    end subroutine print_config
+
+
+
 
 end program dragons_den

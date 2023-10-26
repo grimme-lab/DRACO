@@ -45,6 +45,7 @@ contains
         '⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡳⣶⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀', &
         ''
         call draco_version(unit)
+        call disclaimer(unit)
                                                    
     end subroutine header
 
@@ -60,5 +61,43 @@ contains
         write(unit,'(a)')                                                                                                                                                                          
                                                                                                                                                                                                
     end subroutine draco_version 
+
+    subroutine generic_header(iunit,string,width,offset)                                                                                                                                           
+        implicit none                                                                                                                                                                                  
+        integer,intent(in) :: iunit                                                                                                                                                                    
+        integer,intent(in) :: offset                                                                                                                                                                   
+        integer,intent(in) :: width                                                                                                                                                                    
+        character(len=*),intent(in) :: string                                                                                                                                                          
+        character(len=width) :: dum1,dum2                                                                                                                                                              
+        character(len=2*width) :: outstring                                                                                                                                                            
+        character(len=width) :: formatstr                                                                                                                                                              
+        integer :: strlen,ifront,iback                                                                                                                                                                 
+        strlen = len(string)                                                                                                                                                                           
+        ifront = (width - strlen)/2                                                                                                                                                                    
+        iback  = width - ifront - strlen                                                                                                                                                               
+        write(dum1,*) width                                                                                                                                                                            
+        write(dum2,*) offset                                                                                                                                                                           
+        write(formatstr,'(i0,"x,a,",i0,"x")') ifront,iback                                                                                                                                             
+        write(outstring,'("|",'//formatstr//',"|")') string                                                                                                                                            
+        write(iunit,'('//dum2//'x,1x,'//dum1//'("-"),1x)')                                                                                                                                             
+        write(iunit,'('//dum2//'x,a)') trim(outstring)                                                                                                                                                 
+        write(iunit,'('//dum2//'x,1x,'//dum1//'("-"),1x)')                                                                                                                                             
+    end subroutine generic_header
+
+    subroutine disclaimer(iunit)                                                                                                                                                                                
+        integer,intent(in) :: iunit                                                                                                                                                                                
+        write(iunit,'(3x,a)') &                                                                                                                                                                                    
+           !< < < < < < < < < < < < < < < > > > > > > > > > > > > > > > >!                                                                                                                                         
+           "DRACO is free software: you can redistribute it and/or modify it under", &                                                                                                                               
+           "the terms of the GNU Lesser General Public License as published by", &                                                                                                                                 
+           "the Free Software Foundation, either version 3 of the License, or", &                                                                                                                                  
+           "(at your option) any later version.", &                                                                                                                                                                
+           "", &                                                                                                                                                                                                   
+           "DRACO is distributed in the hope that it will be useful,", &                                                                                                                                             
+           "but WITHOUT ANY WARRANTY; without even the implied warranty of", &                                                                                                                                     
+           "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the", &                                                                                                                                      
+           "GNU Lesser General Public License for more details.", &                                                                                                                                                
+           ""                                                                                                                                                                                                      
+    end subroutine disclaimer
 
 end module fancy
