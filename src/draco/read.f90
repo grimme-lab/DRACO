@@ -14,7 +14,12 @@ module draco_read
        module procedure readcharges_id
     end interface read_charges
 
-    public :: rdparam_solvscale, read_charges
+      interface read_cn
+         module procedure readcn_file
+         module procedure readcn_id
+      end interface read_cn
+
+    public :: rdparam_solvscale, read_charges, read_cn
 
 contains
 
@@ -151,5 +156,74 @@ contains
          end if
 
    end subroutine readcharges_id
+
+   subroutine readcn_file(file, cn, error)
+      character(len=*), intent(in) :: file
+      real(wp), intent(inout), allocatable :: cn(:)
+
+      type(error_type), allocatable, intent(out) :: error
+
+      integer :: id, err
+      logical :: ex
+
+      inquire(file=file,exist=ex)
+      if (.not. ex) then
+         deallocate(cn)
+         return
+      end if
+      open(newunit=id,file=file,iostat=err)
+
+      if (err.ne.0) then
+         call fatal_error(error, "Error while opening file " // trim(file) // " for custom CN reading")
+         return
+      end if
+
+      call readcn_id(id, cn,error)
+
+      close(id)
+   end subroutine readcn_file
+
+   subroutine readcn_id(id, cn, error)
+      integer, intent(in) :: id
+      real(wp), intent(inout) :: cn(:)
+
+      !> Error handling
+      type(error_type), allocatable, intent(out) :: error
+
+      character(len=10) :: line
+      integer :: ie, at, err
+      real(wp) :: ddum
+
+      at = 0
+      do
+         read(id,*,iostat=err) line
+         if (err<0) exit
+         if (err>0) then
+            call fatal_error(error, "Error while reading custom CN from file")
+            return
+         end if
+         if (line == '') exit
+         read(line,*) ddum
+
+         if (at > size(cn)) then
+            call fatal_error(error, "Too many custom CN in file")
+            return
+         end if
+         at=at+1
+         cn(at) = ddum
+         if (err.ne.0) then
+            write(at,*) line
+            call fatal_error(error, "Error while reading custom CN for atom " // line // " from file")
+            return
+         end if
+      end do
+
+      if (at < size(cn)) then
+         call fatal_error(error, "Too few custom CN in file")
+         return
+      end if
+
+   end subroutine readcn_id
+
 
 end module draco_read

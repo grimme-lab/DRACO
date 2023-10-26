@@ -40,10 +40,10 @@ contains
       beta = get_beta(solvent)
       eps = get_eps(trim(solvent))
 
-      write(output_unit,'(2x,"Dielectric constant used:", 2x, F5.2)') eps
-      write(output_unit,'(2x,"Alpha used:", 2x, F5.2)') alpha
-      write(output_unit,'(2x,"Beta used:", 2x, F5.2)') beta
-      write(output_unit,*) 
+      !write(output_unit,'(2x,"Dielectric constant used:", 2x, F5.2)') eps
+      !write(output_unit,'(2x,"Alpha used:", 2x, F5.2)') alpha
+      !write(output_unit,'(2x,"Beta used:", 2x, F5.2)') beta
+      !write(output_unit,*) 
       !if (eps == 0.0_wp) call env%error('Solvent '//trim(solvent)//' not recognized')
 
       do i=1, mol%nat

@@ -1,5 +1,5 @@
 module draco_type
-    use mctc_io, only: structure_type, get_filetype, read_structure
+    use mctc_io, only: structure_type, get_filetype, read_structure, to_symbol
     use mctc_env, only: wp, error_type, fatal_error
     use draco_data, only: getVanDerWaalsRadCosmo, getVanDerWaalsRadCPCM, getVanDerWaalsRadSMD
     implicit none
@@ -35,13 +35,14 @@ module draco_type
         procedure :: charge => draco_charge
         procedure :: calc => draco_scale
         procedure :: write => draco_write_qc_input
+        procedure :: element
     end type TDraco
 
 contains
 
     subroutine draco_init(self, file, charge, qmodel, radtype, qc_input, write_all, error)
         use iso_fortran_env, only: output_unit
-        use draco_read, only: read_charges
+        use draco_read, only: read_charges, read_cn
         use draco_charges, only: get_cn
         class(TDraco), intent(inout) :: self
         character(len=*), intent(in) :: file
@@ -101,16 +102,52 @@ contains
         self%radtype = radtype
         self%scaledradii = 0.0_wp
         self%charges = 0.0_wp
-        call get_cn(self%mol, self%cn)
         if (qmodel == "custom") then
-            call read_charges('draco_charges',self%charges, error)
+            call read_charges('draco_charges',self%charges, local_error)
+
+            if (allocated(local_error)) then
+                if (present(error)) then
+                    error = local_error
+                    return
+                else
+                    write(output_unit,'(a)') local_error%message
+                    return
+                end if
+            end if
+
             if (abs(sum(self%charges)-self%mol%charge) > 0.1_wp) then ! High tolerance to allow deviation for printouts
-                call fatal_error(error,'The sum of the custom charges is not equal to the total charge of the molecule')
+                call fatal_error(local_error,'The sum of the custom charges is not equal to the total charge of the molecule')
+                if (present(error)) then
+                    error = local_error
+                else
+                    write(output_unit,'(a)') local_error%message
+                end if
                 return
             end if
+
+            call read_cn('draco_cn',self%cn, local_error)
+            
+            if (allocated(local_error)) then
+                if (present(error)) then
+                    error = local_error
+                    return
+                else
+                    write(output_unit,'(a)') local_error%message
+                    return
+                end if
+            end if
+
+            if (.not. allocated(self%cn)) then
+                allocate(self%cn(self%mol%nat))
+                call get_cn(self%mol, self%cn)
+                call fatal_error(local_error,'No coordination number file found, using default',0)
+            end if
+
         else
-            call self%charge(qmodel, error)
+            call get_cn(self%mol, self%cn)
+            call self%charge(qmodel, local_error)
         end if
+        error=local_error
         if(write_all) self%write_all = .true.
     end subroutine draco_init
 
@@ -228,7 +265,15 @@ contains
         end select
     end subroutine draco_write_qc_input
 
+    pure function element(self,id) result(res)
+        class(TDraco), intent(in) :: self
+        integer, intent(in) :: id
+        character(len=2) :: res
 
+        write(res,'(a)') to_symbol(self%mol%num(self%mol%id(id)))
+        
+
+    end function element
 
 
 end module draco_type

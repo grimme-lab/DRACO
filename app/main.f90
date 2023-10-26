@@ -1,7 +1,9 @@
 program dragons_den
-    use draco, only: TDraco, header, write_charges
+    use draco, only: TDraco, header, write_charges, write_cn
     use iso_fortran_env, only: output_unit, input_unit
     use mctc_env, only: wp, error_type
+    use mctc_io, only: to_symbol
+    use draco_data, only: aatoau
     implicit none
     type TConf
         character(len=:), allocatable :: input
@@ -21,6 +23,8 @@ program dragons_den
     type(error_type), allocatable :: error
     integer, parameter :: scalable_atoms(8)=(/1,6,7,8,9,16,17,35/)
 
+    character(len=:), allocatable :: warnings
+
     integer :: i
 
     if (file_exists('.CHRG')) then
@@ -38,18 +42,24 @@ program dragons_den
     call check_terminate(error)
 
     if (file_exists('.solvscale.param')) then
-        write(*,*) 'Loading solvent scaling parameters from .solvscale.param'
+        if (config%verbose .ge. 0) write(output_unit,'(3x,a)') 'Loading solvent scaling parameters from .solvscale.param'
         call dragon%readParam('.solvscale.param',error)
     else
         call dragon%loadParam(config%solvent)
     end if
     call check_terminate(error)
     call dragon%calc(config%solvent,scalable_atoms)
-      ! Print radii
-      write(output_unit,*) '  Number  Partial Charge  Radii'
-      do i = 1, dragon%mol%nat
-         write(*,'(5x,i0,9x,f5.2, 7x, f5.2 )') i, dragon%charges(i), dragon%scaledradii(i)
-      enddo
+    ! Print radii
+    if (config%verbose .ge. 0) then
+        write(output_unit,'(a)')
+        write(output_unit,'(3x,a,t16,a,t33,a)') 'Identifier', 'Partial Charge',  'Radii (unscaled)'
+        do i = 1, dragon%mol%nat
+           write(output_unit,'(7x,a,i0, t20, f5.2,t33,f5.2,3x,a,g0.3,a )') &
+           & trim(dragon%element(i)),i, dragon%charges(i), dragon%scaledradii(i), '('&
+           & , dragon%defaultradii(i)/aatoau,')'
+        enddo
+        write(output_unit,'(a)')
+    end if
 
     if (allocated(config%qc_interface)) then
         call dragon%write(config%qc_interface, scalable_atoms, error)
@@ -57,8 +67,16 @@ program dragons_den
     end if
 
     if (config%wrcharges) then
+        if (config%verbose .ge. 0) then
+            write(output_unit,'(3x,a)') 'Writing charges to "draco_charges" &
+            & and coordination numbers to "draco_cn"', &
+            ''
+        end if
         call write_charges(dragon%charges)
+        call write_cn(dragon%cn)
     end if
+
+    call terminate(0)
 contains
 
     subroutine get_arguments(config, error)
@@ -122,7 +140,7 @@ contains
                 iarg=iarg+1
                 call get_argument(iarg,arg)
                 read(arg,*) config%charge
-            case ('--solvent','-s')
+            case ('--solvent')
                 iarg=iarg+1
                 call get_argument(iarg,arg)
                 if (.not.allocated(config%solvent)) then
@@ -140,6 +158,8 @@ contains
             case ('--help','-h')
                 call help(output_unit)
                 call exit(0)
+            case ('--silent','--quiet')
+                config%verbose = -1
             end select
         end do
 
@@ -172,12 +192,23 @@ contains
 
     subroutine check_terminate(err)
         implicit none
-        type(error_type), intent(in), allocatable :: err
+        type(error_type), intent(inout), allocatable :: err
         if (allocated(err)) then
-            write(output_unit,'(a)') error%message
-            call exit(1)
+            select case (err%stat)
+            case(0)
+                write(output_unit,'(a)') "[WARNING] "//trim(err%message)
+                if (.not.allocated(warnings)) then
+                    warnings="[WARNING] "//trim(err%message)
+                else
+                    warnings = trim(warnings)//new_line(trim(err%message))
+                end if
+                deallocate(err)
+            case(1)
+                write(output_unit,'(3x, a)') "[ERROR] "//error%message
+                write(output_unit,'(a)') 
+                call terminate(err%stat) 
+            end select
         end if
-
     end subroutine check_terminate
 
 subroutine help(unit)
@@ -222,6 +253,14 @@ end subroutine help
         inquire(file=filename, exist=file_exists)
 
     end function file_exists
-    
+
+    subroutine terminate(stat)
+        integer, intent(in) :: stat
+        if (allocated(warnings)) then
+            write(output_unit,'(3x,a)') warnings
+            write(output_unit,'(a)')
+        end if
+        call exit(stat)
+    end subroutine terminate 
 
 end program dragons_den
