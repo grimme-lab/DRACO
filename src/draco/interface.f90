@@ -54,7 +54,7 @@ contains
       write(ich,*) ' $cosmo_atoms'
       write(ich,*) ' #radii in Angstrom units'
       do i=1, mol%nat
-         if(write_all == .true.) then !Write all radii
+         if(write_all) then !Write all radii
             write(ich,'(2x,a,1x,i0,5x,a)') toSymbol(mol%num(i)), i, '\'
             write(ich,'(3x,a,F16.12)') 'radius=', radii(i)
          else if(any(atoms_to_change_radii == mol%num(i))) then
@@ -106,7 +106,7 @@ contains
          if(trim(adjustl(line)) == '%cpcm') then
             cpcm_block = .true.
             do i=1, mol%nat
-               if(write_all == .true.) then
+               if(write_all) then
                   write(ich,'(2x,a,i0,a,F16.12,a)') 'AtomRadii(', i-1,',', radii(i), ')'
                else if(any(atoms_to_change_radii == mol%num(i))) then
                   write(ich,'(2x,a,i0,a,F16.12,a)') 'AtomRadii(', i-1,',', radii(i), ')'
@@ -123,7 +123,7 @@ contains
          write(ich,*) 
          write(ich,*) '%cpcm'
          do i=1, mol%nat
-            if(write_all == .true.) then !Write all radii
+            if(write_all) then !Write all radii
                write(ich,'(2x,a,i0,a,F16.12,a)') 'AtomRadii(', i-1,',', radii(i), ')'
             else if(any(atoms_to_change_radii == mol%num(mol%id(i)))) then !Write only adjusted radii
                write(ich,'(2x,a,i0,a,F16.12,a)') 'AtomRadii(', i-1,',', radii(i), ')'

@@ -147,8 +147,16 @@ contains
             call get_cn(self%mol, self%cn)
             call self%charge(qmodel, local_error)
         end if
-        error=local_error
         if(write_all) self%write_all = .true.
+        if (allocated(local_error)) then
+           if (present(error)) then
+              error = local_error
+              return
+           else
+              write(output_unit,'(a)') local_error%message
+              return
+           end if
+        end if
     end subroutine draco_init
 
     subroutine draco_charge(self, model, error)
