@@ -25,6 +25,9 @@ module draco_type
         !> QC Input
         character(len=:), allocatable :: qc_input
 
+        !> Which charge model?
+        character(len=:), allocatable :: qmodel
+
         !> Write all radii?
         logical :: write_all
 
@@ -102,6 +105,7 @@ contains
         self%radtype = radtype
         self%scaledradii = 0.0_wp
         self%charges = 0.0_wp
+        self%qmodel = qmodel
         if (qmodel == "custom") then
             call read_charges('draco_charges',self%charges, local_error)
 
@@ -191,19 +195,50 @@ contains
             !call env%error('COSMO is not implemeneted yet')
 
          case('cpcm')
-!            self%o_shift = eeq_to_radii_scaling_alpha_cpcm
-            select case (solvent)
+            select case (self%qmodel)
                case default
-!                  self%prefac = eeq_to_radii_prefac_other_cpcm
-!                  self%expo = eeq_to_radii_expo_other_cpcm
-                  !if (get_eps(trim(solvent)) < 5.0_wp) then
-                  !   call env%warning &
-                  !   & ("The current parameterization is only tested for polar solvents.")
-                  !end if
-               case('water')
-!                  self%prefac = eeq_to_radii_prefac_water_cpcm
-!                  self%expo = eeq_to_radii_expo_water_cpcm
-            end select
+                   error stop 'Something went wrong'
+               case ('eeq')
+                   select case (solvent)
+                      case default
+                         self%prefac = eeq_prefac_other_solvents_cpcm
+                         self%expo = eeq_expo_other_solvents_cpcm
+                         self%k1 = eeq_k_other_solvents_cpcm
+                         self%o_shift = eeq_o_shift_other_solvents_cpcm
+                      case('water')
+                         self%prefac = eeq_prefac_water_cpcm
+                         self%expo = eeq_expo_water_cpcm
+                         self%k1 = eeq_k_water_cpcm
+                         self%o_shift = 0.0_wp
+                   end select
+               case ('ceh')
+                   select case (solvent)
+                      case default
+                         self%prefac = ceh_prefac_other_solvents_cpcm
+                         self%expo = ceh_expo_other_solvents_cpcm
+                         self%k1 = ceh_k_other_solvents_cpcm
+                         self%o_shift = ceh_o_shift_other_solvents_cpcm
+                      case('water')
+                         self%prefac = ceh_prefac_water_cpcm
+                         self%expo = ceh_expo_water_cpcm
+                         self%k1 = ceh_k_water_cpcm
+                         self%o_shift = 0.0_wp
+                   end select
+               case ('custom')
+                   select case (solvent)
+                      case default
+!                         self%prefac = custom_prefac_other_solvents_cpcm
+!                         self%expo = custom_expo_other_solvents_cpcm
+!                         self%k1 = custom_k_other_solvents_cpcm
+!                         self%o_shift = custom_o_shift_other_solvents_cpcm
+                      case('water')
+                         self%prefac = custom_prefac_water_cpcm
+                         self%expo = custom_expo_water_cpcm
+                         self%k1 = custom_k_water_cpcm
+                         self%o_shift = 0.0_wp
+                   end select
+                end select
+
 
          case('smd')
             !Use the scaling on SMD radii
