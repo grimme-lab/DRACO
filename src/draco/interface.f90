@@ -54,8 +54,6 @@ contains
       write(ich,*) ' $cosmo_atoms'
       write(ich,*) ' #radii in Angstrom units'
       do i=1, mol%nat
-            write(*,*) i
-            write(*,*) mol%num(i)
          if(write_all) then !Write all radii
             write(ich,'(2x,a,1x,i0,5x,a)') toSymbol(mol%num(mol%id(i))), i, '\'
             write(ich,'(3x,a,F16.12)') 'radius=', radii(i)

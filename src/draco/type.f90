@@ -227,10 +227,10 @@ contains
                case ('custom')
                    select case (solvent)
                       case default
-!                         self%prefac = custom_prefac_other_solvents_cpcm
-!                         self%expo = custom_expo_other_solvents_cpcm
-!                         self%k1 = custom_k_other_solvents_cpcm
-!                         self%o_shift = custom_o_shift_other_solvents_cpcm
+                         self%prefac = custom_prefac_other_solvents_cpcm
+                         self%expo = custom_expo_other_solvents_cpcm
+                         self%k1 = custom_k_other_solvents_cpcm
+                         self%o_shift = custom_o_shift_other_solvents_cpcm
                       case('water')
                          self%prefac = custom_prefac_water_cpcm
                          self%expo = custom_expo_water_cpcm
@@ -241,20 +241,49 @@ contains
 
 
          case('smd')
-            !Use the scaling on SMD radii
-!            self%o_shift = eeq_to_radii_scaling_alpha_smd
-            select case (solvent)
+            select case (self%qmodel)
                case default
-!                  self%prefac = eeq_to_radii_prefac_other_smd
-!                  self%expo = eeq_to_radii_expo_other_smd
-                  !if (get_eps(trim(solvent)) < 5.0_wp) then
-                  !   call env%warning &
-                  !   & ("The current parameterization is only tested for polar solvents.")
-                  !end if
-               case('water')
-!                  self%prefac = eeq_to_radii_prefac_water_smd
-!                  self%expo = eeq_to_radii_expo_water_smd
-            end select
+                   error stop 'Something went wrong'
+               case ('eeq')
+                   select case (solvent)
+                      case default
+                         self%prefac = eeq_prefac_other_solvents_smd
+                         self%expo = eeq_expo_other_solvents_smd
+                         self%k1 = eeq_k_other_solvents_smd
+                         self%o_shift = eeq_o_shift_other_solvents_smd
+                      case('water')
+                         self%prefac = eeq_prefac_water_smd
+                         self%expo = eeq_expo_water_smd
+                         self%k1 = eeq_k_water_smd
+                         self%o_shift = 0.0_wp
+                   end select
+               case ('ceh')
+                   select case (solvent)
+                      case default
+                         self%prefac = ceh_prefac_other_solvents_smd
+                         self%expo = ceh_expo_other_solvents_smd
+                         self%k1 = ceh_k_other_solvents_smd
+                         self%o_shift = ceh_o_shift_other_solvents_smd
+                      case('water')
+                         self%prefac = ceh_prefac_water_smd
+                         self%expo = ceh_expo_water_smd
+                         self%k1 = ceh_k_water_smd
+                         self%o_shift = 0.0_wp
+                   end select
+               case ('custom')
+                   select case (solvent)
+                      case default
+                         self%prefac = custom_prefac_other_solvents_smd
+                         self%expo = custom_expo_other_solvents_smd
+                         self%k1 = custom_k_other_solvents_smd
+                         self%o_shift = custom_o_shift_other_solvents_smd
+                      case('water')
+                         self%prefac = custom_prefac_water_smd
+                         self%expo = custom_expo_water_smd
+                         self%k1 = custom_k_water_smd
+                         self%o_shift = 0.0_wp
+                   end select
+                end select
         end select
 
    end subroutine draco_load_parameter
