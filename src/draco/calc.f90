@@ -53,7 +53,7 @@ contains
             k = k1(mol%num(mol%id(i)))
             radii_out(i) = erf(a*((q(i)+k*q(i)*cn(i))-b)) + 1
          else
-            radii_out(i) = radii_in(i)
+            radii_out(i) = radii_in(i)/aatoau
          end if
       enddo
 
