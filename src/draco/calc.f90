@@ -61,17 +61,6 @@ contains
          case default
             !call env%error('This is a Bug, please report with number #1221')
 
-         case('cosmo')
-            !Use the scaling on COSMO-RS radii
-            !write(*,*) '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-            !write(*,*) 'Radius = f_sclae * vdwradcpcm'
-            !write(*,*) '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-            do i=1, mol%nat
-            if(any(atoms_to_change_radii == mol%num(mol%id(i)))) then
-                  radii_out(i) = radii_out(i) * (radii_in(i)/aatoau) 
-            end if
-            end do
-
          case('bondi')
             !Use the scaling on bondi radii
             do i=1, mol%nat
@@ -80,7 +69,7 @@ contains
                end if
             end do
 
-         case('cpcm')
+         case('cpcm','cosmo')
             !Use the scaling on cpcm radii
             do i=1, mol%nat
                if(any(atoms_to_change_radii == mol%num(mol%id(i)))) then
@@ -88,11 +77,7 @@ contains
                   if (mol%num(mol%id(i)) == 8 .AND. get_alpha(solvent) < 0.43) then
                     radii_out(i) = radii_out(i) + (o_shift(mol%num(mol%id(i)))*(0.43-get_alpha(solvent)))
                   end if  
-!                  radii(i) = radii(i) + (vanDerWaalsRadCPCM(mol%num(mol%id(i))/aatoau)
                   radii_out(i) = radii_out(i) * (radii_in(i)/aatoau)
-                  !write(*,*) '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-                  !write(*,*) 'Radius = f_sclae * vdwradcpcm'
-                  !write(*,*) '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
                end if
             end do
 
