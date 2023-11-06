@@ -239,7 +239,6 @@ contains
                    end select
                 end select
 
-
          case('smd')
             select case (self%qmodel)
                case default
