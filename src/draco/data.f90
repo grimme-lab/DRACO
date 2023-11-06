@@ -1939,7 +1939,7 @@ function get_eps(solvent) result(epsilon)
      epsilon=37.219
  case('dimethylpyridine')
      epsilon=7.1735
- case('dimethylsulfoxide')
+ case('dimethylsulfoxide', 'dmso')
      epsilon=46.826
  case('dodecane')
      epsilon=2.006
