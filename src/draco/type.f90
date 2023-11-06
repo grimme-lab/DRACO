@@ -192,7 +192,36 @@ contains
             !call env%error('This is a Bug, please report with number #1222')
 
          case('cosmo')
-            !call env%error('COSMO is not implemeneted yet')
+            select case (self%qmodel)
+               case default
+                   error stop 'Something went wrong'
+               case ('eeq')
+                   select case (solvent)
+                      case default
+                         self%prefac = eeq_prefac_other_solvents_cosmo
+                         self%expo = eeq_expo_other_solvents_cosmo
+                         self%k1 = eeq_k_other_solvents_cosmo
+                         self%o_shift = eeq_o_shift_other_solvents_cosmo
+                      case('water')
+                         self%prefac = eeq_prefac_water_cosmo
+                         self%expo = eeq_expo_water_cosmo
+                         self%k1 = eeq_k_water_cosmo
+                         self%o_shift = 0.0_wp
+                   end select
+               case ('ceh')
+                   select case (solvent)
+                      case default
+                         self%prefac = ceh_prefac_other_solvents_cosmo
+                         self%expo = ceh_expo_other_solvents_cosmo
+                         self%k1 = ceh_k_other_solvents_cosmo
+                         self%o_shift = ceh_o_shift_other_solvents_cosmo
+                      case('water')
+                         self%prefac = ceh_prefac_water_cosmo
+                         self%expo = ceh_expo_water_cosmo
+                         self%k1 = ceh_k_water_cosmo
+                         self%o_shift = 0.0_wp
+                   end select
+                end select
 
          case('cpcm')
             select case (self%qmodel)
@@ -238,6 +267,7 @@ contains
                          self%o_shift = 0.0_wp
                    end select
                 end select
+
 
          case('smd')
             select case (self%qmodel)
@@ -326,7 +356,7 @@ contains
                 call fatal_error(error,'No QC input file specified for ORCA')
                 return
             end if
-        case('turbomole')
+        case('turbomole','tm')
             call write_radii(self%mol,self%scaledradii, atoms_to_change_radii, self%write_all)
         case default
             if (present(error)) then
