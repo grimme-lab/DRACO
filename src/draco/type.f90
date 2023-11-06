@@ -221,6 +221,19 @@ contains
                          self%k1 = ceh_k_water_cosmo
                          self%o_shift = 0.0_wp
                    end select
+               case ('custom')
+                   select case (solvent)
+                      case default
+                         self%prefac = custom_prefac_other_solvents_cosmo
+                         self%expo = custom_expo_other_solvents_cosmo
+                         self%k1 = custom_k_other_solvents_cosmo
+                         self%o_shift = custom_o_shift_other_solvents_cosmo
+                      case('water')
+                         self%prefac = custom_prefac_water_cosmo
+                         self%expo = custom_expo_water_cosmo
+                         self%k1 = custom_k_water_cosmo
+                         self%o_shift = 0.0_wp
+                   end select
                 end select
 
          case('cpcm')
