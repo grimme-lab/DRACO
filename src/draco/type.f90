@@ -41,8 +41,6 @@ module draco_type
         real(wp), allocatable :: dcndL(:,:,:)
         !> Gradients of the radii w.r.t. coordination numbers
         real(wp), allocatable :: drdr(:,:,:)
-        !> Gradients of the radii w.r.t. strain deformations
-        real(wp), allocatable :: drdL(:,:,:)
 
     contains
         procedure :: init => draco_init
@@ -364,7 +362,7 @@ contains
         if (allocated(self%dqdr)) then
             call calc_radii(self%mol, self%charges, self%radtype, solvent, self%prefac, self%expo, self%o_shift,&
             & self%defaultradii, self%cn, self%k1, self%scaledradii, atoms_to_change_radii, dqdr=self%dqdr, dcndr=self%dcndr,&
-            & dqdL=self%dqdL, dcndL=self%dcndL, drdr=self%drdr, drdL=self%drdL)
+            & drdr=self%drdr)
         else
             call calc_radii(self%mol, self%charges, self%radtype, solvent, self%prefac, self%expo, self%o_shift,&
             & self%defaultradii, self%cn, self%k1, self%scaledradii, atoms_to_change_radii)

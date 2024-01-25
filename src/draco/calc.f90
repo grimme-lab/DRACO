@@ -8,7 +8,7 @@ contains
 
    subroutine calc_radii(mol, q, radtype, solvent, prefac, expo, o_shift, &
                   & radii_in,cn,k1,radii_out,atoms_to_change_radii,&
-                  & dqdr,dcndr,dqdL,dcndL,drdr,drdL)
+                  & dqdr,dcndr,drdr)
     use iso_fortran_env, only: output_unit
       !> Molecular structure data
       type(structure_type), intent(inout) :: mol
@@ -22,8 +22,8 @@ contains
       real(wp), intent(in) :: cn(:)
 
       !> Derivatives
-      real(wp), intent(in), optional, contiguous :: dqdr(:,:,:), dcndr(:,:,:), dqdL(:,:,:), dcndL(:,:,:)
-      real(wp), intent(out), allocatable, optional :: drdr(:,:,:), drdL(:,:,:)
+      real(wp), intent(in), optional, contiguous :: dqdr(:,:,:), dcndr(:,:,:)
+      real(wp), intent(out), allocatable, optional :: drdr(:,:,:)
 
       !> Solvent
       character(len=*), intent(in) :: solvent
@@ -51,7 +51,7 @@ contains
       eps = get_eps(trim(solvent))
 
       grad = present(dqdr) .and. present(dcndr) .and. present(drdr)
-      if (grad) allocate(drdr(3,mol%nat,mol%nat), drdL(3,3,mol%nat))
+      if (grad) allocate(drdr(3,mol%nat,mol%nat))
 
       do i=1, mol%nat
          if(any(atoms_to_change_radii == mol%num(mol%id(i)))) then
@@ -62,7 +62,6 @@ contains
             if (grad) then
                outer=2*exp(-a**2*(q(i)+k*q(i)*cn(i)-b)**2)/sqrt(pi)
                drdr(:,:,i)=a*(dqdr(:,:,i)+k*dqdr(:,:,i)*cn(i)+q(i)*k*dcndr(:,:,i))*outer
-               drdL(:,:,i)=a*(dqdL(:,:,i)+k*dqdL(:,:,i)*cn(i)+q(i)*k*dcndL(:,:,i))*outer
             end if
          else
             radii_out(i) = radii_in(i)/aatoau
@@ -77,7 +76,6 @@ contains
                   radii_out(i) = radii_out(i) * (radii_in(i)/aatoau)
                   if (grad) then
                      drdr(:,:,i)=drdr(:,:,i) * (radii_in(i)/aatoau)
-                     drdL(:,:,i)=drdL(:,:,i) * (radii_in(i)/aatoau)
                   end if
                end if
             end do
@@ -93,7 +91,6 @@ contains
                   radii_out(i) = radii_out(i) * (radii_in(i)/aatoau)
                   if (grad) then
                      drdr(:,:,i)=drdr(:,:,i) * (radii_in(i)/aatoau)
-                     drdL(:,:,i)=drdL(:,:,i) * (radii_in(i)/aatoau)
                   end if
                end if
             end do
@@ -109,7 +106,6 @@ contains
                   radii_out(i) = radii_out(i) * (radii_in(i)/aatoau)
                   if (grad) then
                      drdr(:,:,i)=drdr(:,:,i) * (radii_in(i)/aatoau)
-                     drdL(:,:,i)=drdL(:,:,i) * (radii_in(i)/aatoau)
                   end if
                end if
             end do
