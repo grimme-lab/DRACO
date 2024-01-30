@@ -31,6 +31,17 @@ module draco_type
         !> Write all radii?
         logical :: write_all
 
+        !> Gradients of the charges w.r.t. cartesian coordinates
+        real(wp), allocatable :: dqdr(:,:,:)
+        !> Gradients of the charges w.r.t. strain deformations
+        real(wp), allocatable :: dqdL(:,:,:)
+        !> Gradients of the coordination numbers w.r.t. cartesian coordinates
+        real(wp), allocatable :: dcndr(:,:,:)
+        !> Gradients of the coordination numbers w.r.t. strain deformations
+        real(wp), allocatable :: dcndL(:,:,:)
+        !> Gradients of the radii w.r.t. coordination numbers
+        real(wp), allocatable :: drdr(:,:,:)
+
     contains
         procedure :: init => draco_init
         procedure :: loadParam => draco_load_parameter
@@ -143,12 +154,12 @@ contains
 
             if (.not. allocated(self%cn)) then
                 allocate(self%cn(self%mol%nat))
-                call get_cn(self%mol, self%cn)
+                call get_cn(self%mol, self%cn, dcndr=self%dcndr,dcndL=self%dcndL)
                 call fatal_error(local_error,'No coordination number file found, using default',0)
             end if
 
         else
-            call get_cn(self%mol, self%cn)
+            call get_cn(self%mol, self%cn,dcndr=self%dcndr,dcndL=self%dcndL)
             call self%charge(qmodel, local_error)
         end if
         if(write_all) self%write_all = .true.
@@ -169,11 +180,12 @@ contains
         character(len=*), intent(in) :: model
         type(error_type), allocatable, intent(inout), optional :: error
 
+
         select case(model)
         case('ceh')
             call ceh(self%mol,self%charges, error)
         case ('eeq')
-            call eeq(self%mol,self%charges)
+            call eeq(self%mol,self%charges,self%dqdr,self%dqdL)
         case default
             call fatal_error(error,'Unknown charge model: '//trim(model))
         end select
@@ -347,8 +359,14 @@ contains
         character(len=*), intent(in) :: solvent
         integer, dimension(:), intent(in) :: atoms_to_change_radii
 
-        call calc_radii(self%mol, self%charges, self%radtype, solvent, self%prefac, self%expo, self%o_shift,&
-        & self%defaultradii, self%cn, self%k1, self%scaledradii, atoms_to_change_radii)
+        if (allocated(self%dqdr)) then
+            call calc_radii(self%mol, self%charges, self%radtype, solvent, self%prefac, self%expo, self%o_shift,&
+            & self%defaultradii, self%cn, self%k1, self%scaledradii, atoms_to_change_radii, dqdr=self%dqdr, dcndr=self%dcndr,&
+            & drdr=self%drdr)
+        else
+            call calc_radii(self%mol, self%charges, self%radtype, solvent, self%prefac, self%expo, self%o_shift,&
+            & self%defaultradii, self%cn, self%k1, self%scaledradii, atoms_to_change_radii)
+        end if
 
     end subroutine draco_scale
 
