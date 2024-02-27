@@ -30,6 +30,7 @@ contains
         '|                     C. Plett, M.Stahn                     |', &     
         '|          Mulliken Center for Theoretical Chemistry        |', &     
         '|                    University of Bonn                     |', &     
+        '|             DOI: 10.1021/acs.jpclett.3c03551              |', &     
         ' -----------------------------------------------------------  '
         if (pr>0) write(unit,'(20x,a)')'', &
         '        This is DRACO.  ', &
