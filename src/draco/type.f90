@@ -378,16 +378,27 @@ contains
         integer, dimension(:), intent(in) :: atoms_to_change_radii
 
         type(error_type), allocatable, intent(inout), optional :: error
+        logical :: ex
 
         select case(program)
         case('orca')
             if (allocated(self%qc_input)) then
+                inquire(file=self%qc_input,exist=ex)
+                if (.not. ex) then
+                   call fatal_error(error,"ORCA input "//self%qc_input//" was specified, but nowhere to be found")
+                   return
+                end if
                 call write_radii(self%mol, self%scaledradii, self%qc_input, atoms_to_change_radii, self%write_all)
             else
                 call fatal_error(error,'No QC input file specified for ORCA')
                 return
             end if
         case('turbomole','tm')
+            inquire(file="control",exist=ex)
+            if (.not. ex) then
+               call fatal_error(error,'It seems that there is no control file here, so I cannot write anything anywhere')
+               return
+            end if
             call write_radii(self%mol,self%scaledradii, atoms_to_change_radii, self%write_all)
         case default
             if (present(error)) then
