@@ -17,6 +17,7 @@ program dragons_den
         integer :: verbose = 0
         logical :: write_all = .false.
         logical :: wrcharges = .false.
+        logical :: damp_small_rad = .true.
     end type TConf
 
     type(TDraco) :: dragon
@@ -41,7 +42,7 @@ program dragons_den
         call print_config(config)
     end if
     call dragon%init(config%input, config%charge, config%qmodel,&
-           & config%radtype, config%qc_input, config%write_all, error)
+           & config%radtype, config%qc_input, config%write_all, config%damp_small_rad, error)
     call check_terminate(error)
 
     if (file_exists('.solvscale.param')) then
@@ -123,7 +124,7 @@ contains
                     cycle
                 end if
                 call fatal_error(error, "Only one program can be specified")
-            case ('--model','--chargemodel','--qmodel')
+            case ('--chargemodel','--qmodel', '--chrgmodel')
                 iarg=iarg+1
                 call get_argument(iarg,arg)
                 if (.not.allocated(config%qmodel)) then
@@ -143,7 +144,7 @@ contains
                 config%verbose = 1
             case ('--veryverbose','-vv')
                 config%verbose = 2
-            case ('--charge','-c')
+            case ('--charge','-c', '--chrg')
                 iarg=iarg+1
                 call get_argument(iarg,arg)
                 read(arg,*) config%charge
@@ -159,6 +160,8 @@ contains
                 config%write_all = .true.
             case ('--writecharges', '--wrcharges')
                 config%wrcharges = .true.
+            case ('--nodamp')
+                config%damp_small_rad = .false.
             case ('--version','-V')
                 call header(output_unit,1)
                 call exit(0)
@@ -176,7 +179,7 @@ contains
         end if
 
         if (.not.allocated(config%solvent)) then
-            call fatal_error(error, "No solvent specified")
+            call fatal_error(error, "No solvent specified, use --solvent <solvent name>.")
             return
         end if
 
@@ -224,7 +227,7 @@ subroutine help(unit)
    call header(output_unit,1)
    write(unit,'(a)') ""
    write(unit, '(2x,a)') &
-      "Usage: draco [options] <inputfile> [options]", &
+      "Usage: draco [options] <inputfile> --solvent <solvent name> --rad <solvation model> [options]", &
       "Calculates dynamically scaled radii based on partial charges of a compound.", &
       ""
 
@@ -245,12 +248,17 @@ subroutine help(unit)
       "", &
       "--solvent", "Specify the solvent used for solvent properties and parametrization.", &
       "--prog, --interface", "Specify the QC program for which the input files should be written. (ORCA, TURBOMOLE)", &
-      "", "[HINT] For ORCA, the .inp file needs to be given (e.q. --prog ORCA orca.inp)", &
-      "--charge", "Manually set the charge of the compound.", &
+      "", "[HINT] For ORCA, the input file needs to be specified (e.q. --prog ORCA orca.inp)", &
+      "--charge, --chrg", "Manually set the charge of the compound.", &
+      "--chrgmodel, --qmodel", "Define charge model used (eeq, ceh, custom).", &
+      "","For custom, a file with partial charges must be given.",&
+      "","Parameters for custom are optimized for Hirshfeld charges at B97M-V/def2-TZVPPD.", &
       "--rad", "Sets the default radii to be scaled. (cpcm, cosmo, smd)", &
       "--writeall", "Writes all atomic radii including also not scaled ones.", &
       "--writecharges", "Writes the partial charges to a file called 'draco_charges'.", &
       "", "Also writes the coordination numbers to a file called 'draco_cn'.", &
+      "--nodamp", "Turn off damping for small radii that are not tested.",&
+      "", "Should only be set be used if gradient is required e.g. geometry optimizations.", &
       "--version", "Show version information.", &
       "--verbose", "Show more information.", &
       "--silent", "Supress the printout.", &
@@ -303,8 +311,5 @@ end subroutine help
         write(output_unit,'(a)')
 
     end subroutine print_config
-
-
-
 
 end program dragons_den

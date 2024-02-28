@@ -2697,7 +2697,7 @@ end function get_alpha
 
 function get_beta(solvent) result(beta)
 character(len=*), intent(in) :: solvent
-real(wp):: beta
+real(wp) :: beta
 
 select case(solvent)
   case default
@@ -2903,5 +2903,13 @@ select case(solvent)
 end select
 
 end function get_beta
+
+function min_rad(rad_type)
+   character(len=*), intent(in) :: rad_type
+   real(wp) :: min_rad
+   if (rad_type == 'cpcm' .or. rad_type == 'cosmo') min_rad = 0.4
+   if (rad_type == 'smd') min_rad = 0.5
+   return
+end function min_rad
 
 end module draco_data

@@ -1,13 +1,13 @@
 module draco_calc
     use mctc_io, only: structure_type
     use mctc_env, only: wp
-    use draco_data, only: get_alpha, get_beta, get_eps, aatoau
+    use draco_data, only: get_alpha, get_beta, get_eps, aatoau, min_rad
     implicit none
 
 contains
 
    subroutine calc_radii(mol, q, radtype, solvent, prefac, expo, o_shift, &
-                  & radii_in,cn,k1,radii_out,atoms_to_change_radii,&
+                  & radii_in,cn,k1,radii_out,atoms_to_change_radii,damp_small_rad,&
                   & dqdr,dcndr,drdr)
     use iso_fortran_env, only: output_unit
       !> Molecular structure data
@@ -29,11 +29,13 @@ contains
       character(len=*), intent(in) :: solvent
       !> Radii type
       character(len=*), intent(in) :: radtype
+      !> Damping if radii too small?
+      logical, intent(in) :: damp_small_rad
       !> Radii to be scaled
       integer, intent(in) :: atoms_to_change_radii(:)
       real(wp), intent(in) :: radii_in(mol%nat)
       real(wp), intent(out) :: radii_out(mol%nat)
-      real(wp) :: asym, damping, x3, x2, x1, a, b, c, d, k
+      real(wp) :: asym, x3, x2, x1, a, b, c, d, k
       real(wp) :: eps, alpha_beta_scaling_h, alpha_beta_scaling_o
       real(wp) :: alpha, beta
       real(wp) :: outer
@@ -59,6 +61,8 @@ contains
             b = expo(mol%num(mol%id(i)))
             k = k1(mol%num(mol%id(i)))
             radii_out(i) = erf(a*(q(i)+k*q(i)*cn(i)-b)) + 1
+            if (damp_small_rad .and. (radii_out(i) < min_rad(radtype))) &
+                    & radii_out(i) = min_rad(radtype) !Set value to minimal radii tested
             if (grad) then
                outer=2*exp(-a**2*(q(i)+k*q(i)*cn(i)-b)**2)/sqrt(pi)
                drdr(:,:,i)=a*(dqdr(:,:,i)+k*dqdr(:,:,i)*cn(i)+q(i)*k*dcndr(:,:,i))*outer

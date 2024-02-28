@@ -31,6 +31,9 @@ module draco_type
         !> Write all radii?
         logical :: write_all
 
+        !> Damp radii, if they get smaller than the tested values
+        logical :: damp_small_rad
+
         !> Gradients of the charges w.r.t. cartesian coordinates
         real(wp), allocatable :: dqdr(:,:,:)
         !> Gradients of the charges w.r.t. strain deformations
@@ -54,7 +57,8 @@ module draco_type
 
 contains
 
-    subroutine draco_init(self, file, charge, qmodel, radtype, qc_input, write_all, error)
+    subroutine draco_init(self, file, charge, qmodel, radtype, qc_input,&
+                & write_all, damp_small_rad, error)
         use iso_fortran_env, only: output_unit
         use draco_read, only: read_charges, read_cn
         use draco_charges, only: get_cn
@@ -70,6 +74,8 @@ contains
         character(len=*), intent(in), optional :: qc_input
         !> Write all radii?
         logical, intent(in) :: write_all
+        !> Damp small radii that were not tested?
+        logical, intent(in) :: damp_small_rad
         !> Error handling
         type(error_type), allocatable, intent(inout), optional :: error
         type(error_type), allocatable :: local_error
@@ -172,6 +178,9 @@ contains
               return
            end if
         end if
+
+        self%damp_small_rad = damp_small_rad
+
     end subroutine draco_init
 
     subroutine draco_charge(self, model, error)
@@ -360,12 +369,14 @@ contains
         integer, dimension(:), intent(in) :: atoms_to_change_radii
 
         if (allocated(self%dqdr)) then
-            call calc_radii(self%mol, self%charges, self%radtype, solvent, self%prefac, self%expo, self%o_shift,&
-            & self%defaultradii, self%cn, self%k1, self%scaledradii, atoms_to_change_radii, dqdr=self%dqdr, dcndr=self%dcndr,&
-            & drdr=self%drdr)
+            call calc_radii(self%mol, self%charges, self%radtype, solvent, self%prefac,&
+                   & self%expo, self%o_shift, self%defaultradii, self%cn, self%k1,&
+                   & self%scaledradii, atoms_to_change_radii, self%damp_small_rad,&
+                   & dqdr=self%dqdr, dcndr=self%dcndr, drdr=self%drdr)
         else
-            call calc_radii(self%mol, self%charges, self%radtype, solvent, self%prefac, self%expo, self%o_shift,&
-            & self%defaultradii, self%cn, self%k1, self%scaledradii, atoms_to_change_radii)
+            call calc_radii(self%mol, self%charges, self%radtype, solvent, self%prefac,&
+                   & self%expo, self%o_shift, self%defaultradii, self%cn, self%k1,&
+                   & self%scaledradii, atoms_to_change_radii, self%damp_small_rad)
         end if
 
     end subroutine draco_scale
