@@ -69,7 +69,7 @@ For this molecule, your output (default radii: cpcm, default qmodel: ceh) should
 
 ```
 
-###Setting up a QC calculation using DRACO's dynamic radii
+### Setting up a QC calculation using DRACO's dynamic radii
 
 After you obtained the dynamic radii from a DRACO calculation, you can use them in any QC program of your choice, that allows the usage of custom radii for the implicit solvent calculation.
 
