@@ -221,6 +221,7 @@ contains
 subroutine help(unit)
    integer, intent(in) :: unit
 
+   call header(output_unit,1)
    write(unit,'(a)') ""
    write(unit, '(2x,a)') &
       "Usage: draco [options] <inputfile> [options]", &
