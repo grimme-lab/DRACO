@@ -182,6 +182,11 @@ contains
          call fatal_error(error, "No solvent specified, use --solvent <solvent name>.")
          return
       end if
+      
+      if (.not. allocated(config%radtype)) then
+         call fatal_error(error, "No radii type specified, use --radii [cpcm, smd, cosmo].")
+         return
+      end if
 
       call set_defaults(config)
 
@@ -193,9 +198,6 @@ contains
 
       if (.not. allocated(config%qmodel)) then
          config%qmodel = "ceh"
-      end if
-      if (.not. allocated(config%radtype)) then
-         config%radtype = "cpcm"
       end if
 
    end subroutine set_defaults
@@ -247,11 +249,11 @@ contains
          "Possible options are:", &
          "", &
          "--solvent", "Specify the solvent used for solvent properties and parametrization.", &
-         "--prog, --interface", "Specify the QC program for which the input files should be written. (ORCA, TURBOMOLE)", &
-         "", "[HINT] For ORCA, the input file needs to be specified (e.q. --prog ORCA orca.inp)", &
+         "--prog, --interface", "Specify a QC program for which the input files should be modified. (orca, turbomole)", &
+         "", "[HINT] For ORCA, the input file needs to be specified (e.q. --prog orca orca.inp)", &
          "--charge, --chrg", "Manually set the charge of the compound.", &
          "--chrgmodel, --qmodel", "Define charge model used (eeq, ceh, custom).", &
-         "", "For custom, a file with partial charges must be given.", &
+         "", "For custom, a file with partial charges must be given (see --wrcharges).", &
          "", "Parameters for custom are optimized for Hirshfeld charges at B97M-V/def2-TZVPPD.", &
          "--rad", "Sets the default radii to be scaled. (cpcm, cosmo, smd)", &
          "--writeall", "Writes all atomic radii including also not scaled ones.", &
