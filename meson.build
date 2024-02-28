@@ -90,4 +90,4 @@ configure_file(
   configuration : config,                                                                                                                                                                      
 )  
 
-#subdir('test')
+subdir('test')

@@ -52,6 +52,9 @@ jobs:
     - name: Build project
       run: meson compile -C ${{ env.BUILD_DIR }}
 
+    - name: Run unit tests
+      run: meson test -C ${{ env.BUILD_DIR }} --print-errorlogs --no-rebuild -t 120 --suite draco
+
 
   gcc-cmake-build:
     runs-on: ${{ matrix.os }}
@@ -83,3 +86,6 @@ jobs:
     - name: Build project
       run: cmake --build ${{ env.BUILD_DIR }}
 
+    - name: Run unit tests
+      run: ctest --parallel --output-on-failure -R draco
+      working-directory: ${{ env.BUILD_DIR }}

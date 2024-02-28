@@ -140,5 +140,5 @@ configure_file(
 )
 
 # add the testsuite
-#enable_testing()
-#add_subdirectory("test")
+enable_testing()
+add_subdirectory("test")
