@@ -1,8 +1,8 @@
 module draco
-    use draco_type
-    use draco_write, only: write_charges, write_cn
-    implicit none
+   use draco_type
+   use draco_write, only: write_charges, write_cn
+   implicit none
 
-    public
+   public
 
 end module draco
