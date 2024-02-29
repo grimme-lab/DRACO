@@ -21,8 +21,8 @@ The method is published in [The Journal of Physical Chemistry Letters](https://d
 You can use the release binary of DRACO, or build your own version from source (see below).
 To do that, you need to clone the repository to your local environment.
 ```
-git clone https://github.com/grimme-lab/CPCM-X.git
-cd CPCM-X
+git clone https://github.com/grimme-lab/DRACO.git
+cd DRACO
 ```
 The recommended version for building this project is using Meson.
 
