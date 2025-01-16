@@ -182,11 +182,6 @@ contains
          call fatal_error(error, "No solvent specified, use --solvent <solvent name>.")
          return
       end if
-      
-      if (.not. allocated(config%radtype)) then
-         call fatal_error(error, "No radii type specified, use --radii [cpcm, smd, cosmo].")
-         return
-      end if
 
       call set_defaults(config)
 
@@ -198,6 +193,10 @@ contains
 
       if (.not. allocated(config%qmodel)) then
          config%qmodel = "ceh"
+      end if
+
+      if (.not. allocated(config%radtype)) then
+         config%radtype = "cpcm"
       end if
 
    end subroutine set_defaults
