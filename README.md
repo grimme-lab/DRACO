@@ -3,6 +3,7 @@
 [![License](https://img.shields.io/github/license/grimme-lab/DRACO)](https://github.com/grimme-lab/DRACO/blob/main/LICENSE)
 [![Latest Version](https://img.shields.io/github/v/release/grimme-lab/DRACO)](https://github.com/grimme-lab/DRACO/releases/latest)
 [![DOI](https://img.shields.io/badge/DOI-10.1021/acs.jpclett.3c03551-blue)](https://doi.org/10.1021/acs.jpclett.3c03551)
+[![DOI](https://img.shields.io/badge/DOI-10.1002/jcc.70099-blue)](https://doi.org/10.1002/jcc.70099)
 
 ## Introduction
 
@@ -14,7 +15,14 @@ This is an Open Source framework for the Dynamic Radii Adjustment for COntinuum 
 DRACO employs precomputed atomic partial charges and coordination numbers of the solute atoms to improve the solute cavity.
 As such, DRACO is compatible with major solvation models, improving their performance significantly and robustly at virtually no extra cost, especially for charged solutes.
 
-The method is published in [The Journal of Physical Chemistry Letters](https://doi.org/10.1021/acs.jpclett.3c03551).
+## References
+
+- Original DRACO publication:  
+  [J. Phys. Chem. Lett. **2024**, 15, 2462–2469](https://doi.org/10.1021/acs.jpclett.3c03551)
+
+- Gradient for DRACO combined with CPCM/COSMO:  
+  [J. Comput. Chem. **2025**, 46, e70099](https://doi.org/10.1002/jcc.70099)
+
 
 ## Building
 
